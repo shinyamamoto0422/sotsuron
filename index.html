@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>サードスペース概念に基づくAI支援型インタープリテーション・モデルの研究</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ========== Reset & Base ========== */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --sumi: #2D2D2D;
+      --sumi-light: #4A4A4A;
+      --kinari: #F5F0E8;
+      --kinari-dark: #E8E0D0;
+      --benibana: #D4878F;
+      --ai: #2B4B6F;
+      --ai-light: #3A6B9F;
+      --murasaki: #6B5B8A;
+      --murasaki-light: #8A7AAA;
+      --section-gap: clamp(80px, 12vw, 160px);
+    }
+
+    html {
+      scroll-behavior: smooth;
+      font-size: 16px;
+    }
+
+    body {
+      font-family: "Noto Serif JP", "Hiragino Mincho ProN", serif;
+      color: var(--sumi);
+      background-color: var(--kinari);
+      line-height: 1.9;
+      font-weight: 400;
+      overflow-x: hidden;
+    }
+
+    /* ========== Typography ========== */
+    h1, h2, h3, h4 {
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    .section-label {
+      font-size: 0.75rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--murasaki);
+      margin-bottom: 1rem;
+      font-weight: 400;
+    }
+
+    .section-title {
+      font-size: clamp(1.5rem, 3.5vw, 2.4rem);
+      margin-bottom: 2rem;
+      font-weight: 500;
+    }
+
+    /* ========== Layout ========== */
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    section {
+      padding: var(--section-gap) 0;
+    }
+
+    /* ========== Scroll Animation ========== */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .fade-in.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .fade-in-delay-1 { transition-delay: 0.15s; }
+    .fade-in-delay-2 { transition-delay: 0.3s; }
+    .fade-in-delay-3 { transition-delay: 0.45s; }
+    .fade-in-delay-4 { transition-delay: 0.6s; }
+
+    /* ========== Navigation ========== */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 100;
+      padding: 1rem 2rem;
+      transition: background-color 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    nav.scrolled {
+      background-color: rgba(245, 240, 232, 0.95);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 1px 0 rgba(45, 45, 45, 0.08);
+    }
+
+    nav .nav-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    nav .nav-title {
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      color: var(--sumi);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    nav.scrolled .nav-title {
+      opacity: 1;
+    }
+
+    nav .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      list-style: none;
+    }
+
+    nav .nav-links a {
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      color: var(--sumi-light);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    nav .nav-links a:hover {
+      color: var(--murasaki);
+    }
+
+    /* ========== 1. Hero ========== */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+      padding: 2rem;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(107, 91, 138, 0.06) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 50%, rgba(43, 75, 111, 0.06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-sub {
+      font-size: 0.8rem;
+      letter-spacing: 0.4em;
+      color: var(--murasaki);
+      margin-bottom: 2.5rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(1.4rem, 4vw, 2.6rem);
+      font-weight: 500;
+      line-height: 1.7;
+      margin-bottom: 3rem;
+      letter-spacing: 0.05em;
+    }
+
+    .hero-meta {
+      font-size: 0.85rem;
+      color: var(--sumi-light);
+      line-height: 2;
+    }
+
+    .hero-scroll {
+      position: absolute;
+      bottom: 3rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--sumi-light);
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+    }
+
+    .hero-scroll .scroll-line {
+      width: 1px;
+      height: 40px;
+      background: var(--sumi-light);
+      animation: scrollDown 2s ease-in-out infinite;
+    }
+
+    @keyframes scrollDown {
+      0% { transform: scaleY(0); transform-origin: top; }
+      50% { transform: scaleY(1); transform-origin: top; }
+      51% { transform: scaleY(1); transform-origin: bottom; }
+      100% { transform: scaleY(0); transform-origin: bottom; }
+    }
+
+    /* ========== Divider ========== */
+    .divider {
+      width: 40px;
+      height: 1px;
+      background: var(--murasaki);
+      margin: 0 auto 2rem;
+      opacity: 0.5;
+    }
+
+    /* ========== 2. Research Question ========== */
+    .rq {
+      min-height: 70vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background-color: var(--sumi);
+      color: var(--kinari);
+    }
+
+    .rq-text {
+      font-size: clamp(1.3rem, 3.5vw, 2.2rem);
+      font-weight: 300;
+      line-height: 2;
+      letter-spacing: 0.08em;
+      max-width: 700px;
+    }
+
+    .rq-text em {
+      font-style: normal;
+      color: var(--murasaki-light);
+      font-weight: 500;
+    }
+
+    /* ========== 3. Background ========== */
+    .bg-section .lead {
+      font-size: 1.05rem;
+      line-height: 2.2;
+      margin-bottom: 3rem;
+      color: var(--sumi-light);
+    }
+
+    .comparison-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 2.5rem;
+    }
+
+    .comp-card {
+      background: white;
+      border-radius: 8px;
+      padding: 2rem;
+      border: 1px solid rgba(45, 45, 45, 0.08);
+      transition: box-shadow 0.3s ease;
+    }
+
+    .comp-card:hover {
+      box-shadow: 0 4px 20px rgba(45, 45, 45, 0.08);
+    }
+
+    .comp-card-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      color: var(--sumi-light);
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(45, 45, 45, 0.08);
+    }
+
+    .comp-card-label.ai-label {
+      color: var(--murasaki);
+      border-bottom-color: rgba(107, 91, 138, 0.2);
+    }
+
+    .comp-card p {
+      font-size: 0.9rem;
+      line-height: 1.9;
+    }
+
+    .comp-card .highlight {
+      background: linear-gradient(transparent 60%, rgba(107, 91, 138, 0.15) 60%);
+    }
+
+    .problem-note {
+      margin-top: 2.5rem;
+      padding: 1.5rem 2rem;
+      background: rgba(212, 135, 143, 0.08);
+      border-left: 3px solid var(--benibana);
+      border-radius: 0 8px 8px 0;
+      font-size: 0.9rem;
+      line-height: 2;
+      color: var(--sumi-light);
+    }
+
+    /* ========== 4. Theoretical Framework ========== */
+    .framework {
+      background: white;
+    }
+
+    .pillars {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .pillar {
+      padding: 2.5rem 2rem;
+      border-radius: 8px;
+      background: var(--kinari);
+      border: 1px solid rgba(45, 45, 45, 0.05);
+      text-align: center;
+    }
+
+    .pillar-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pillar-icon svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .pillar h3 {
+      font-size: 1rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .pillar .pillar-author {
+      font-size: 0.75rem;
+      color: var(--murasaki);
+      margin-bottom: 1rem;
+    }
+
+    .pillar p {
+      font-size: 0.85rem;
+      line-height: 1.9;
+      color: var(--sumi-light);
+      text-align: left;
+    }
+
+    /* ========== 5. Case Study: Kaiseki ========== */
+    .kaiseki-elements {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      margin-top: 2.5rem;
+    }
+
+    .kaiseki-card {
+      padding: 2rem;
+      border-radius: 8px;
+      background: white;
+      border: 1px solid rgba(45, 45, 45, 0.06);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kaiseki-card::before {
+      content: attr(data-number);
+      position: absolute;
+      top: -10px;
+      right: 10px;
+      font-size: 4rem;
+      font-weight: 700;
+      color: rgba(107, 91, 138, 0.06);
+      line-height: 1;
+    }
+
+    .kaiseki-card h4 {
+      font-size: 1rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .kaiseki-card .kaiseki-jp {
+      font-size: 0.75rem;
+      color: var(--murasaki);
+      margin-bottom: 0.8rem;
+    }
+
+    .kaiseki-card p {
+      font-size: 0.85rem;
+      line-height: 1.9;
+      color: var(--sumi-light);
+    }
+
+    .kaiseki-barrier {
+      margin-top: 3rem;
+      padding: 2rem;
+      background: rgba(43, 75, 111, 0.05);
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .kaiseki-barrier p {
+      font-size: 0.95rem;
+      line-height: 2;
+      color: var(--sumi-light);
+    }
+
+    .kaiseki-barrier strong {
+      color: var(--ai);
+    }
+
+    /* ========== 6. Experiment ========== */
+    .experiment {
+      background: white;
+    }
+
+    .exp-intro {
+      font-size: 0.95rem;
+      line-height: 2;
+      color: var(--sumi-light);
+      margin-bottom: 3rem;
+    }
+
+    .exp-steps {
+      position: relative;
+      padding-left: 2rem;
+    }
+
+    .exp-steps::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2px;
+      height: 100%;
+      background: linear-gradient(
+        to bottom,
+        var(--kinari-dark) 0%,
+        var(--murasaki) 100%
+      );
+    }
+
+    .exp-step {
+      position: relative;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      background: var(--kinari);
+      border-radius: 8px;
+    }
+
+    .exp-step::before {
+      content: "";
+      position: absolute;
+      left: -2.35rem;
+      top: 2.5rem;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--kinari-dark);
+      border: 2px solid var(--kinari);
+      transition: background 0.3s ease;
+    }
+
+    .exp-step:last-child::before {
+      background: var(--murasaki);
+      box-shadow: 0 0 0 4px rgba(107, 91, 138, 0.2);
+    }
+
+    .exp-step-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .exp-step-num {
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      padding: 0.25rem 0.7rem;
+      border-radius: 20px;
+      background: var(--kinari-dark);
+      color: var(--sumi-light);
+      white-space: nowrap;
+    }
+
+    .exp-step:last-child .exp-step-num {
+      background: var(--murasaki);
+      color: white;
+    }
+
+    .exp-step h4 {
+      font-size: 0.95rem;
+    }
+
+    .exp-step p {
+      font-size: 0.85rem;
+      line-height: 1.9;
+      color: var(--sumi-light);
+    }
+
+    .exp-step .prompt-example {
+      margin-top: 1rem;
+      padding: 1rem 1.2rem;
+      background: white;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      line-height: 1.8;
+      color: var(--sumi-light);
+      border-left: 2px solid var(--kinari-dark);
+    }
+
+    .exp-step:last-child .prompt-example {
+      border-left-color: var(--murasaki);
+    }
+
+    .exp-insight {
+      margin-top: 2.5rem;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .exp-insight p {
+      font-size: 1.1rem;
+      color: var(--murasaki);
+      font-weight: 500;
+    }
+
+    .exp-insight .insight-sub {
+      font-size: 0.85rem;
+      color: var(--sumi-light);
+      font-weight: 400;
+      margin-top: 0.5rem;
+    }
+
+    /* ========== 7. Conclusion ========== */
+    .conclusion-conditions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin: 2.5rem 0;
+    }
+
+    .condition {
+      padding: 2rem 1.5rem;
+      text-align: center;
+      border-radius: 8px;
+      background: white;
+      border: 1px solid rgba(45, 45, 45, 0.06);
+    }
+
+    .condition-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--murasaki);
+      color: white;
+      font-size: 0.8rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+
+    .condition h4 {
+      font-size: 0.95rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .condition p {
+      font-size: 0.82rem;
+      line-height: 1.8;
+      color: var(--sumi-light);
+    }
+
+    /* Diagram */
+    .diagram-wrapper {
+      margin-top: 3.5rem;
+      padding: 3rem 2rem;
+      background: var(--sumi);
+      border-radius: 12px;
+      color: var(--kinari);
+    }
+
+    .diagram-title {
+      text-align: center;
+      font-size: 0.75rem;
+      letter-spacing: 0.3em;
+      color: var(--murasaki-light);
+      margin-bottom: 2rem;
+    }
+
+    .diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      flex-wrap: wrap;
+    }
+
+    .diagram-node {
+      text-align: center;
+      padding: 1.2rem 1.5rem;
+    }
+
+    .diagram-node .node-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      color: var(--murasaki-light);
+      margin-bottom: 0.3rem;
+    }
+
+    .diagram-node .node-text {
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .diagram-arrow {
+      font-size: 1.2rem;
+      color: var(--murasaki-light);
+      padding: 0 0.5rem;
+    }
+
+    .diagram-center {
+      background: rgba(107, 91, 138, 0.2);
+      border-radius: 8px;
+      border: 1px solid rgba(107, 91, 138, 0.3);
+    }
+
+    .diagram-result {
+      width: 100%;
+      text-align: center;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(107, 91, 138, 0.2);
+    }
+
+    .diagram-result .result-arrow {
+      font-size: 1.5rem;
+      color: var(--murasaki-light);
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .diagram-result .result-text {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: var(--murasaki-light);
+      letter-spacing: 0.1em;
+    }
+
+    /* ========== 8. Outlook ========== */
+    .outlook {
+      background: linear-gradient(
+        180deg,
+        var(--kinari) 0%,
+        rgba(107, 91, 138, 0.08) 100%
+      );
+    }
+
+    .outlook .lead {
+      font-size: 1.05rem;
+      line-height: 2.2;
+      color: var(--sumi-light);
+      margin-bottom: 3rem;
+    }
+
+    .society-compare {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .society-box {
+      padding: 2rem;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .society-box.s4 {
+      background: rgba(45, 45, 45, 0.05);
+      border: 1px solid rgba(45, 45, 45, 0.1);
+    }
+
+    .society-box.s5 {
+      background: rgba(107, 91, 138, 0.1);
+      border: 1px solid rgba(107, 91, 138, 0.2);
+    }
+
+    .society-box h4 {
+      font-size: 0.95rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .society-box .society-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      color: var(--sumi-light);
+      margin-bottom: 1rem;
+    }
+
+    .society-box p {
+      font-size: 0.85rem;
+      line-height: 1.8;
+      color: var(--sumi-light);
+    }
+
+    .society-box.s5 h4 {
+      color: var(--murasaki);
+    }
+
+    .society-arrow {
+      font-size: 1.5rem;
+      color: var(--murasaki);
+    }
+
+    .outlook-vision {
+      margin-top: 3rem;
+      padding: 2.5rem;
+      text-align: center;
+      background: white;
+      border-radius: 12px;
+      border: 1px solid rgba(107, 91, 138, 0.1);
+    }
+
+    .outlook-vision p {
+      font-size: 1rem;
+      line-height: 2.2;
+      color: var(--sumi-light);
+    }
+
+    .outlook-vision strong {
+      color: var(--murasaki);
+      font-weight: 500;
+    }
+
+    /* ========== Video Section ========== */
+    .video-section {
+      padding: var(--section-gap) 0;
+      background: var(--sumi);
+      text-align: center;
+    }
+
+    .video-section .section-label {
+      color: var(--murasaki-light);
+    }
+
+    .video-section .section-title {
+      color: var(--kinari);
+    }
+
+    .video-wrapper {
+      max-width: 800px;
+      margin: 0 auto;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .video-wrapper video {
+      width: 100%;
+      display: block;
+    }
+
+    .video-caption {
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+      color: rgba(245, 240, 232, 0.5);
+      line-height: 1.8;
+    }
+
+    /* ========== 9. Footer ========== */
+    footer {
+      background: var(--sumi);
+      color: var(--kinari);
+      padding: 4rem 0 3rem;
+    }
+
+    footer .footer-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    .footer-refs h3 {
+      font-size: 0.8rem;
+      letter-spacing: 0.2em;
+      color: var(--murasaki-light);
+      margin-bottom: 1.5rem;
+    }
+
+    .footer-refs ul {
+      list-style: none;
+      columns: 1;
+    }
+
+    .footer-refs li {
+      font-size: 0.78rem;
+      line-height: 1.8;
+      color: rgba(245, 240, 232, 0.6);
+      margin-bottom: 0.5rem;
+    }
+
+    .footer-bottom {
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(245, 240, 232, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: rgba(245, 240, 232, 0.4);
+    }
+
+    /* ========== Responsive ========== */
+    @media (max-width: 768px) {
+      nav .nav-links {
+        display: none;
+      }
+
+      .pillars {
+        grid-template-columns: 1fr;
+      }
+
+      .comparison-cards {
+        grid-template-columns: 1fr;
+      }
+
+      .kaiseki-elements {
+        grid-template-columns: 1fr;
+      }
+
+      .conclusion-conditions {
+        grid-template-columns: 1fr;
+      }
+
+      .society-compare {
+        grid-template-columns: 1fr;
+      }
+
+      .society-arrow {
+        transform: rotate(90deg);
+        margin: 0.5rem auto;
+      }
+
+      .diagram {
+        flex-direction: column;
+      }
+
+      .diagram-arrow {
+        transform: rotate(90deg);
+        padding: 0.3rem;
+      }
+    }
+
+    /* ========== Figure Images ========== */
+    .figure-img {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid rgba(45, 45, 45, 0.08);
+      margin-top: 1.5rem;
+    }
+
+    .figure-caption {
+      font-size: 0.75rem;
+      color: var(--sumi-light);
+      text-align: center;
+      margin-top: 0.5rem;
+      letter-spacing: 0.05em;
+    }
+
+    .figure-full {
+      margin-top: 2.5rem;
+    }
+
+    .figure-full img {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid rgba(45, 45, 45, 0.08);
+      box-shadow: 0 4px 24px rgba(45, 45, 45, 0.08);
+    }
+
+    .exp-step .figure-img {
+      margin-top: 1rem;
+      border-radius: 6px;
+    }
+
+    /* ========== Video Play Button ========== */
+    .video-fab {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      z-index: 200;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--murasaki);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(107, 91, 138, 0.4);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .video-fab:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 28px rgba(107, 91, 138, 0.5);
+    }
+
+    .video-fab svg {
+      width: 22px;
+      height: 22px;
+      fill: white;
+      margin-left: 3px;
+    }
+
+    .video-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      background: rgba(0, 0, 0, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    .video-overlay.is-active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .video-overlay video {
+      width: 90vw;
+      max-width: 1200px;
+      max-height: 90vh;
+      border-radius: 8px;
+    }
+
+    .video-overlay-close {
+      position: absolute;
+      top: 1.5rem;
+      right: 2rem;
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.5);
+      font-size: 2rem;
+      cursor: pointer;
+      line-height: 1;
+      transition: color 0.3s ease;
+    }
+
+    .video-overlay-close:hover {
+      color: white;
+    }
+
+    /* ========== Print ========== */
+    @media print {
+      nav { display: none; }
+      .hero { min-height: auto; padding: 3rem 0; }
+      .rq { min-height: auto; padding: 3rem 0; }
+      section { padding: 2rem 0; page-break-inside: avoid; }
+      .fade-in { opacity: 1; transform: none; }
+      .hero-scroll { display: none; }
+      body { font-size: 11pt; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== Video Play Button (FAB) ===== -->
+  <button class="video-fab" id="videoFab" aria-label="動画を再生">
+    <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+  </button>
+
+  <!-- ===== Video Overlay ===== -->
+  <div class="video-overlay" id="videoOverlay">
+    <button class="video-overlay-close" id="videoOverlayClose">&times;</button>
+    <video id="overlayVideo" playsinline preload="metadata">
+      <source src="img/thesis-video.mp4" type="video/mp4">
+    </video>
+  </div>
+
+  <!-- ===== Navigation ===== -->
+  <nav id="nav">
+    <div class="nav-inner">
+      <span class="nav-title">Third Space &times; AI</span>
+      <ul class="nav-links">
+        <li><a href="#question">問い</a></li>
+        <li><a href="#background">背景</a></li>
+        <li><a href="#framework">理論</a></li>
+        <li><a href="#kaiseki">事例</a></li>
+        <li><a href="#experiment">実験</a></li>
+        <li><a href="#conclusion">結論</a></li>
+        <li><a href="#outlook">展望</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ===== 1. Hero ===== -->
+  <section class="hero" id="hero">
+    <div class="hero-content">
+      <p class="hero-sub fade-in">GRADUATION THESIS 2025</p>
+      <h1 class="fade-in fade-in-delay-1">
+        サードスペース概念に基づく<br>
+        AI支援型インタープリテーション・モデルの研究
+      </h1>
+      <div class="divider fade-in fade-in-delay-2"></div>
+      <p class="hero-meta fade-in fade-in-delay-2">
+        A Study on AI-Assisted Interpretation Models<br>
+        Based on the Concept of Third Space
+      </p>
+      <p class="hero-meta fade-in fade-in-delay-3" style="margin-top: 2rem;">
+        同志社大学 経済学部<br>
+        宮崎耕ゼミ 26期<br>
+        山本 新
+      </p>
+    </div>
+    <div class="hero-scroll">
+      <span>SCROLL</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- ===== 2. Research Question ===== -->
+  <section class="rq" id="question">
+    <div class="container">
+      <p class="rq-text fade-in">
+        AIは<em>「第三の空間」</em>を<br>
+        共創する<em>媒介者</em>となりうるか
+      </p>
+      <div class="fade-in" style="max-width:600px; margin:3rem auto 0; padding-top:2rem; border-top:1px solid rgba(138,122,170,0.3);">
+        <p style="font-size:0.8rem; letter-spacing:0.2em; color:rgba(138,122,170,0.8); margin-bottom:0.8rem;">THIRD SPACE ── Homi K. Bhabha, 1994</p>
+        <p style="font-size:0.92rem; line-height:2; color:rgba(245,240,232,0.7);">
+          異なる文化が出会うとき、どちらにも属さない<em style="font-style:normal; color:rgba(138,122,170,0.9);">「第三の」場所</em>が生まれる。<br>
+          そこでは文化Aでも文化Bでもない、新たな意味が共創される。<br>
+          本研究はこの空間を、AIの力で意図的に設計できるかを問う。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 3. Background ===== -->
+  <section class="bg-section" id="background">
+    <div class="container">
+      <p class="section-label fade-in">BACKGROUND</p>
+      <h2 class="section-title fade-in">Society 4.0の限界</h2>
+      <p class="lead fade-in">
+        情報社会（Society 4.0）は知識へのアクセスを民主化した。
+        しかし、情報の共有は<strong>深い理解</strong>を意味しない。
+        京都の町屋で働いた経験から、外国人観光客が懐石料理を前に
+        「Beautiful!」と言うだけで終わる場面を何度も目にしてきた。
+      </p>
+
+      <div class="figure-full fade-in">
+        <img src="img/fig1-2-translation.png" alt="図1・図2：Google翻訳・DeepL・Claudeによる翻訳比較" class="figure-img" style="border:none; box-shadow: 0 4px 24px rgba(45,45,45,0.08);">
+        <p class="figure-caption">図1・図2：従来の翻訳サービス（Google翻訳・DeepL）とAI（Claude）による解釈の比較</p>
+      </div>
+
+      <h3 class="fade-in" style="font-size:1rem; margin-bottom:1.5rem; margin-top:2.5rem;">翻訳の比較：懐石料理の説明</h3>
+      <div class="comparison-cards">
+        <div class="comp-card fade-in">
+          <p class="comp-card-label">GOOGLE TRANSLATE</p>
+          <p>
+            「懐石料理」→ "Kaiseki cuisine"<br><br>
+            直訳のみで文化的コンテクストは失われる。「懐石」が禅の修行僧が温石を懐に入れて空腹をしのいだことに由来する、という<strong>物語</strong>は伝わらない。
+          </p>
+        </div>
+        <div class="comp-card fade-in fade-in-delay-1">
+          <p class="comp-card-label ai-label">AI（CLAUDE）による解釈支援</p>
+          <p>
+            懐石の起源・哲学から、<span class="highlight">季節感や一期一会の精神</span>まで、
+            ゲストの文化的背景に合わせて対話的に説明。
+            単なる翻訳ではなく、<span class="highlight">異文化間の橋渡し</span>として機能する。
+          </p>
+        </div>
+      </div>
+
+      <div class="problem-note fade-in">
+        情報量の問題ではない。問題は<strong>「文化の翻訳」</strong>が不在であること。
+        Society 5.0が目指すべきは、人とテクノロジーの融合による<strong>深い相互理解</strong>である。
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 4. Theoretical Framework ===== -->
+  <section class="framework" id="framework">
+    <div class="container">
+      <p class="section-label fade-in">THEORETICAL FRAMEWORK</p>
+      <h2 class="section-title fade-in">3つの理論的柱</h2>
+
+      <div class="pillars">
+        <!-- Pillar 1: Society 5.0 -->
+        <div class="pillar fade-in">
+          <div class="pillar-icon">
+            <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="28" cy="28" r="20" stroke="#2B4B6F" stroke-width="1.5" fill="none"/>
+              <circle cx="28" cy="28" r="8" stroke="#6B5B8A" stroke-width="1.5" fill="none"/>
+              <line x1="28" y1="8" x2="28" y2="20" stroke="#2B4B6F" stroke-width="1" opacity="0.5"/>
+              <line x1="28" y1="36" x2="28" y2="48" stroke="#2B4B6F" stroke-width="1" opacity="0.5"/>
+              <line x1="8" y1="28" x2="20" y2="28" stroke="#2B4B6F" stroke-width="1" opacity="0.5"/>
+              <line x1="36" y1="28" x2="48" y2="28" stroke="#2B4B6F" stroke-width="1" opacity="0.5"/>
+            </svg>
+          </div>
+          <h3>Society 5.0</h3>
+          <p class="pillar-author">内閣府</p>
+          <p>
+            サイバー空間とフィジカル空間の高度な融合により、
+            経済発展と社会的課題の解決を両立する「人間中心の社会」。
+            AIは人間の能力を拡張する協働パートナーとなる。
+          </p>
+        </div>
+
+        <!-- Pillar 2: Third Space -->
+        <div class="pillar fade-in fade-in-delay-1">
+          <div class="pillar-icon">
+            <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="20" cy="28" r="14" stroke="#2B4B6F" stroke-width="1.5" fill="none" opacity="0.6"/>
+              <circle cx="36" cy="28" r="14" stroke="#D4878F" stroke-width="1.5" fill="none" opacity="0.6"/>
+              <ellipse cx="28" cy="28" rx="6" ry="12" fill="rgba(107,91,138,0.15)" stroke="#6B5B8A" stroke-width="1"/>
+            </svg>
+          </div>
+          <h3>第三の空間</h3>
+          <p class="pillar-author">Homi K. Bhabha, 1994</p>
+          <p>
+            異なる文化が出会い、交渉し、新たな意味を生成する空間。
+            どちらの文化にも還元されない「第三の」場所から、
+            ハイブリッドな理解が立ち現れる。
+          </p>
+        </div>
+
+        <!-- Pillar 3: 4E Model -->
+        <div class="pillar fade-in fade-in-delay-2">
+          <div class="pillar-icon">
+            <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="8" y="8" width="18" height="18" rx="3" stroke="#6B5B8A" stroke-width="1.5" fill="none"/>
+              <rect x="30" y="8" width="18" height="18" rx="3" stroke="#D4878F" stroke-width="1.5" fill="none"/>
+              <rect x="8" y="30" width="18" height="18" rx="3" stroke="#2B4B6F" stroke-width="1.5" fill="none"/>
+              <rect x="30" y="30" width="18" height="18" rx="3" stroke="#6B5B8A" stroke-width="1.5" fill="none"/>
+              <text x="17" y="20" font-size="7" fill="#6B5B8A" text-anchor="middle" font-family="serif">E</text>
+              <text x="39" y="20" font-size="7" fill="#D4878F" text-anchor="middle" font-family="serif">E</text>
+              <text x="17" y="42" font-size="7" fill="#2B4B6F" text-anchor="middle" font-family="serif">E</text>
+              <text x="39" y="42" font-size="7" fill="#6B5B8A" text-anchor="middle" font-family="serif">E</text>
+            </svg>
+          </div>
+          <h3>4Eモデル</h3>
+          <p class="pillar-author">Pine & Gilmore, 1998</p>
+          <p>
+            経験価値を4象限で捉える：Entertainment（娯楽）、
+            Education（教育）、Escapist（脱日常）、
+            Esthetic（審美）。懐石体験は4Eすべてを内包する。
+          </p>
+        </div>
+      </div>
+
+      <!-- 4Eモデル図（Slide 12） -->
+      <div class="figure-full fade-in" style="margin-top: 3rem;">
+        <img src="img/slide12-4emodel.png" alt="4Eモデル：2軸4象限" style="width:100%; max-width:600px; display:block; margin:0 auto; border-radius:12px; box-shadow: 0 4px 24px rgba(45,45,45,0.08);">
+        <p class="figure-caption">4Eモデル ── 受動的／能動的 × 吸収／没入 の4象限で経験価値を分析</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 5. Case Study: Kaiseki ===== -->
+  <section id="kaiseki">
+    <div class="container">
+      <p class="section-label fade-in">CASE STUDY</p>
+      <h2 class="section-title fade-in">京都の懐石料理 ── 4つの文化的要素</h2>
+
+      <div class="kaiseki-elements">
+        <div class="kaiseki-card fade-in" data-number="01">
+          <h4>季節感</h4>
+          <p class="kaiseki-jp">Seasonality</p>
+          <p>
+            食材・器・盛り付けのすべてに四季を映す。
+            春の筍、夏の鮎、秋の松茸、冬の蕪──
+            自然のリズムと食の調和を表現する。
+          </p>
+        </div>
+        <div class="kaiseki-card fade-in fade-in-delay-1" data-number="02">
+          <h4>一期一会</h4>
+          <p class="kaiseki-jp">Once-in-a-lifetime Encounter</p>
+          <p>
+            茶道に由来する精神。今この瞬間の出会いを
+            二度とない特別なものとして大切にし、
+            最高のもてなしを尽くす。
+          </p>
+        </div>
+        <div class="kaiseki-card fade-in fade-in-delay-2" data-number="03">
+          <h4>器との調和</h4>
+          <p class="kaiseki-jp">Harmony with Vessels</p>
+          <p>
+            料理は「器の中の宇宙」。器の形・色・質感が
+            料理の味わいを引き立て、視覚と味覚の
+            統合的な美を創り出す。
+          </p>
+        </div>
+        <div class="kaiseki-card fade-in fade-in-delay-3" data-number="04">
+          <h4>間</h4>
+          <p class="kaiseki-jp">Ma — The Art of Pause</p>
+          <p>
+            料理と料理の間にある「余白」の時間。
+            沈黙や空間を通じて、食す人の内省と
+            感動を深める独自の美意識。
+          </p>
+        </div>
+      </div>
+
+      <div class="kaiseki-barrier fade-in">
+        <p>
+          これらの要素は<strong>暗黙知</strong>として日本文化の中に埋め込まれている。<br>
+          外国人ゲストに「間」の概念を伝えるには、<strong>単なる翻訳を超えた解釈</strong>が必要である。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 6. Experiment ===== -->
+  <section class="experiment" id="experiment">
+    <div class="container">
+      <p class="section-label fade-in">EXPERIMENT</p>
+      <h2 class="section-title fade-in">AIは対話できるか ── 4つの条件</h2>
+      <p class="exp-intro fade-in">
+        Claude（Anthropic）を用い、懐石料理の文化的解釈について4段階のプロンプト条件で実験を行った。
+        条件①から④に進むにつれ、提供する<strong>情報量は減少</strong>し、代わりに<strong>対話性が上昇</strong>する逆説的な構造となっている。
+      </p>
+
+      <!-- 実験フロー図（Slide 15） -->
+      <div class="figure-full fade-in" style="margin-bottom: 3rem;">
+        <img src="img/slide15-expflow.png" alt="実験の流れ：Step1 入力設定 → Step2 プロンプト条件 → Step3 AI出力" style="width:100%; border-radius:12px; box-shadow: 0 4px 24px rgba(45,45,45,0.08);">
+        <p class="figure-caption">実験デザイン：入力設定 → プロンプト条件（①〜④ + Claude Projects）→ AI出力</p>
+      </div>
+
+      <div class="exp-steps">
+        <div class="exp-step fade-in">
+          <div class="exp-step-header">
+            <span class="exp-step-num">条件 01</span>
+            <h4>デフォルト（指示なし）</h4>
+          </div>
+          <p>AIの標準応答。一般的な情報を羅列するが、ゲスト個人への配慮はない。</p>
+          <img src="img/fig7-condition1.png" alt="図7：条件①デフォルトの回答" class="figure-img">
+          <div class="prompt-example">
+            結果：百科事典的な説明。正確だが「体験」にはならない。
+          </div>
+        </div>
+
+        <div class="exp-step fade-in">
+          <div class="exp-step-header">
+            <span class="exp-step-num">条件 02</span>
+            <h4>役割付与</h4>
+          </div>
+          <p>「京都の料亭の主人として答えてください」と役割を設定。語り口に温かみが生まれるが、相手を見ていない。</p>
+          <img src="img/fig8-condition2.png" alt="図8：条件②文化的背景付き回答" class="figure-img">
+          <div class="prompt-example">
+            結果：もてなしの言葉は増えたが、画一的な説明に留まる。
+          </div>
+        </div>
+
+        <div class="exp-step fade-in">
+          <div class="exp-step-header">
+            <span class="exp-step-num">条件 03</span>
+            <h4>文化背景の注入</h4>
+          </div>
+          <p>ゲストの出身文化・食文化の情報を追加。「フランス料理のコースに似ていますが…」など比較を用いた説明が可能に。</p>
+          <img src="img/fig9-condition3.png" alt="図9：条件③出身国考慮の回答" class="figure-img">
+          <div class="prompt-example">
+            結果：異文化比較による説明が生まれ、理解の架け橋が形成され始める。
+          </div>
+        </div>
+
+        <div class="exp-step fade-in">
+          <div class="exp-step-header">
+            <span class="exp-step-num">条件 04</span>
+            <h4>対話型インタープリテーション</h4>
+          </div>
+          <p>
+            Claude Projectsを活用し、懐石の知識体系を構造化。
+            ゲストの反応に応じて説明を調整する<strong>動的対話</strong>を実現。
+            情報を一方的に与えるのではなく、問いかけから始める。
+          </p>
+          <img src="img/fig10-condition4.png" alt="図10：条件④双方向対話の回答" class="figure-img">
+          <div class="prompt-example">
+            結果：ゲスト自身の文化体験と懐石を結びつける「第三の空間」が出現。
+            AIが共創的媒介者として機能した。
+          </div>
+        </div>
+      </div>
+
+      <div class="exp-insight fade-in">
+        <p>「情報量 ↓」 &times; 「対話性 ↑」 ＝ 深い理解</p>
+        <p class="insight-sub">情報を減らし対話を増やすことで、体験の質が向上するパラドックス</p>
+      </div>
+
+      <!-- Claude Projects 対話例（Slide 14） -->
+      <div class="figure-full fade-in" style="margin-top: 3rem;">
+        <img src="img/slide14-dialogue.png" alt="Claude Projectsによる対話例：タイ・アメリカ・フランスのゲスト" style="width:100%; border-radius:12px; box-shadow: 0 4px 24px rgba(45,45,45,0.08);">
+        <p class="figure-caption">Claude Projectsによる対話例 ── 出身国（タイ・アメリカ・フランス）に応じた問いかけの違い</p>
+      </div>
+
+      <!-- 4E評価表（Slide 3） -->
+      <h3 class="fade-in" style="font-size:1rem; margin-top:3rem; margin-bottom:1.5rem; text-align:center;">4Eモデルによる各条件の評価</h3>
+      <div class="fade-in" style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.85rem; background:var(--kinari); border-radius:8px; overflow:hidden;">
+          <thead>
+            <tr style="background:var(--sumi); color:var(--kinari);">
+              <th style="padding:0.8rem 1rem; text-align:left; font-weight:500;">条件</th>
+              <th style="padding:0.8rem 0.7rem; text-align:center; font-weight:500;">Entertainment</th>
+              <th style="padding:0.8rem 0.7rem; text-align:center; font-weight:500;">Education</th>
+              <th style="padding:0.8rem 0.7rem; text-align:center; font-weight:500;">Escapism</th>
+              <th style="padding:0.8rem 0.7rem; text-align:center; font-weight:500;">Esthetics</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid rgba(45,45,45,0.08);">
+              <td style="padding:0.7rem 1rem; font-weight:500;">条件① デフォルト</td>
+              <td style="padding:0.7rem; text-align:center;">★★☆☆☆</td>
+              <td style="padding:0.7rem; text-align:center;">★★☆☆☆</td>
+              <td style="padding:0.7rem; text-align:center;">★☆☆☆☆</td>
+              <td style="padding:0.7rem; text-align:center;">★☆☆☆☆</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(45,45,45,0.08);">
+              <td style="padding:0.7rem 1rem; font-weight:500;">条件② 文化的背景</td>
+              <td style="padding:0.7rem; text-align:center;">★★★☆☆</td>
+              <td style="padding:0.7rem; text-align:center;">★★★☆☆</td>
+              <td style="padding:0.7rem; text-align:center;">★★☆☆☆</td>
+              <td style="padding:0.7rem; text-align:center;">★★☆☆☆</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(45,45,45,0.08);">
+              <td style="padding:0.7rem 1rem; font-weight:500;">条件③ 出身国考慮</td>
+              <td style="padding:0.7rem; text-align:center;">★★★☆☆</td>
+              <td style="padding:0.7rem; text-align:center;">★★★★☆</td>
+              <td style="padding:0.7rem; text-align:center;">★★★☆☆</td>
+              <td style="padding:0.7rem; text-align:center;">★★★☆☆</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(45,45,45,0.08);">
+              <td style="padding:0.7rem 1rem; font-weight:500;">条件④ 双方向対話</td>
+              <td style="padding:0.7rem; text-align:center;">★★★★☆</td>
+              <td style="padding:0.7rem; text-align:center;">★★★★★</td>
+              <td style="padding:0.7rem; text-align:center;">★★★★☆</td>
+              <td style="padding:0.7rem; text-align:center;">★★★★☆</td>
+            </tr>
+            <tr style="background:rgba(107,91,138,0.08);">
+              <td style="padding:0.7rem 1rem; font-weight:500; color:var(--murasaki);">Claude Projects</td>
+              <td style="padding:0.7rem; text-align:center;">★★★★★</td>
+              <td style="padding:0.7rem; text-align:center;">★★★★★</td>
+              <td style="padding:0.7rem; text-align:center;">★★★★☆</td>
+              <td style="padding:0.7rem; text-align:center;">★★★★★</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="figure-caption" style="margin-top:0.8rem;">条件が進むにつれ、4E全領域で評価が向上 ── 特にEducation（学ぶ）が最も顕著に強化される</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 7. Conclusion ===== -->
+  <section id="conclusion">
+    <div class="container">
+      <p class="section-label fade-in">CONCLUSION</p>
+      <h2 class="section-title fade-in">AIが共創媒介者となるための3条件</h2>
+
+      <div class="conclusion-conditions">
+        <div class="condition fade-in">
+          <div class="condition-num">1</div>
+          <h4>文化的背景の把握</h4>
+          <p>ゲストの出身文化・価値観・食文化を理解し、適切な比較軸を設定する能力</p>
+        </div>
+        <div class="condition fade-in fade-in-delay-1">
+          <div class="condition-num">2</div>
+          <h4>暗黙知の言語化</h4>
+          <p>「間」「一期一会」など言語化が困難な文化概念を、相手に伝わる形で表現する能力</p>
+        </div>
+        <div class="condition fade-in fade-in-delay-2">
+          <div class="condition-num">3</div>
+          <h4>対話設計</h4>
+          <p>一方的な説明ではなく、問いかけと応答を通じて相互理解を深める対話構造の設計</p>
+        </div>
+      </div>
+
+      <!-- 三角形図：3条件 × 第三の空間（Slide 8） -->
+      <div class="figure-full fade-in" style="margin-top: 3.5rem;">
+        <img src="img/slide8-triangle.png" alt="3つの条件が生み出す第三の空間" style="width:100%; border-radius:12px; box-shadow: 0 4px 24px rgba(45,45,45,0.1); background:#FAF8F5;">
+        <p class="figure-caption">3つの条件が交わる中心に「第三の空間」が生まれる</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 8. Outlook ===== -->
+  <section class="outlook" id="outlook">
+    <div class="container">
+      <p class="section-label fade-in">OUTLOOK</p>
+      <h2 class="section-title fade-in">Society 5.0への展望</h2>
+      <p class="lead fade-in">
+        本研究は懐石料理を事例としたが、この「AI支援型インタープリテーション・モデル」は
+        あらゆる異文化間コミュニケーションに応用可能である。
+      </p>
+
+      <!-- Society 4.0 → 5.0 変化図（Slide 9） -->
+      <div class="figure-full fade-in" style="margin-bottom: 3rem;">
+        <img src="img/slide9-society.png" alt="Society 4.0から5.0への変化" style="width:100%; border-radius:12px; box-shadow: 0 4px 24px rgba(45,45,45,0.08); background:#FAF8F5;">
+        <p class="figure-caption">Society 4.0（分断・対立）から Society 5.0（融和）へ ── 本研究の3条件が橋渡しとなる</p>
+      </div>
+
+      <!-- Before / After モデル図（Slide 11） -->
+      <div class="figure-full fade-in" style="margin-bottom: 3rem;">
+        <img src="img/fig13-model.png" alt="Before(2026) → After(2035)：一方通行から第三の空間へ" style="width:100%; border-radius:12px; box-shadow: 0 4px 24px rgba(45,45,45,0.08);">
+        <p class="figure-caption">Before（2026年・一方通行の情報伝達）→ After（2035年・第三の空間の共創）</p>
+      </div>
+
+      <div class="outlook-vision fade-in">
+        <p>
+          AIを「翻訳機」ではなく<strong>「文化の通訳者」</strong>として位置づけることで、<br>
+          分断から融和へ──多元的な<strong>第三の空間</strong>が生まれる社会を実現する。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Video ===== -->
+  <section class="video-section">
+    <div class="container">
+      <p class="section-label fade-in">VISION</p>
+      <h2 class="section-title fade-in" style="margin-bottom: 2.5rem;">
+        "Beautiful!" から、その先へ
+      </h2>
+      <div class="video-wrapper fade-in">
+        <video controls playsinline preload="metadata" poster="">
+          <source src="img/thesis-video.mp4" type="video/mp4">
+          お使いのブラウザは動画再生に対応していません。
+        </video>
+      </div>
+      <p class="video-caption fade-in">AI-Generated Concept Video &mdash; 「第三の空間」が拓く未来</p>
+    </div>
+  </section>
+
+  <!-- ===== 9. Footer ===== -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-refs">
+        <h3>REFERENCES</h3>
+        <ul>
+          <li>Bhabha, H. K. (1994). <em>The Location of Culture</em>. Routledge.</li>
+          <li>Pine, B. J. & Gilmore, J. H. (1998). Welcome to the Experience Economy. <em>Harvard Business Review</em>, 76(4), 97-105.</li>
+          <li>内閣府 (2016). 第5期科学技術基本計画.</li>
+          <li>Tilden, F. (1957). <em>Interpreting Our Heritage</em>. University of North Carolina Press.</li>
+          <li>Vygotsky, L. S. (1978). <em>Mind in Society</em>. Harvard University Press.</li>
+        </ul>
+      </div>
+      <div class="footer-bottom">
+        <p>同志社大学 経済学部 宮崎耕ゼミ 26期 &mdash; 山本 新</p>
+        <p>2025</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===== JavaScript ===== -->
+  <script>
+    // Scroll animation with Intersection Observer
+    document.addEventListener('DOMContentLoaded', () => {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+          }
+        });
+      }, {
+        threshold: 0.15,
+        rootMargin: '0px 0px -40px 0px'
+      });
+
+      document.querySelectorAll('.fade-in').forEach(el => {
+        observer.observe(el);
+      });
+
+      // Navigation scroll effect
+      const nav = document.getElementById('nav');
+      const handleScroll = () => {
+        if (window.scrollY > 80) {
+          nav.classList.add('scrolled');
+        } else {
+          nav.classList.remove('scrolled');
+        }
+      };
+      window.addEventListener('scroll', handleScroll, { passive: true });
+      handleScroll();
+
+      // Smooth scroll for nav links
+      document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', (e) => {
+          e.preventDefault();
+          const target = document.querySelector(anchor.getAttribute('href'));
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
+
+      // Video overlay
+      const fab = document.getElementById('videoFab');
+      const overlay = document.getElementById('videoOverlay');
+      const overlayVideo = document.getElementById('overlayVideo');
+      const closeBtn = document.getElementById('videoOverlayClose');
+
+      const openVideo = () => {
+        overlay.classList.add('is-active');
+        overlayVideo.currentTime = 0;
+        overlayVideo.play();
+      };
+
+      const closeVideo = () => {
+        overlay.classList.remove('is-active');
+        overlayVideo.pause();
+      };
+
+      fab.addEventListener('click', openVideo);
+      closeBtn.addEventListener('click', closeVideo);
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeVideo();
+      });
+      overlayVideo.addEventListener('ended', closeVideo);
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && overlay.classList.contains('is-active')) closeVideo();
+      });
+    });
+  </script>
+</body>
+</html>
