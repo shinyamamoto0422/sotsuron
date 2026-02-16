@@ -4,6 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>サードスペース概念に基づくAI支援型インタープリテーション・モデルの研究</title>
+
+  <!-- OGP -->
+  <meta property="og:title" content="サードスペース概念に基づくAI支援型インタープリテーション・モデルの研究">
+  <meta property="og:description" content="AIは「第三の空間」を共創する媒介者となりうるか ── 京都の懐石料理を事例とした卒業論文（同志社大学 宮崎耕ゼミ 26期 山本新）">
+  <meta property="og:image" content="https://shinyamamoto0422.github.io/sotsuron/img/fig13-model.png">
+  <meta property="og:url" content="https://shinyamamoto0422.github.io/sotsuron/">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- Favicon (SVG emoji) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1f30f;</text></svg>">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -142,8 +154,49 @@
       transition: color 0.3s ease;
     }
 
-    nav .nav-links a:hover {
+    nav .nav-links a:hover,
+    nav .nav-links a.active {
       color: var(--murasaki);
+    }
+
+    /* ========== Back to Top ========== */
+    .back-to-top {
+      position: fixed;
+      bottom: 2rem;
+      right: 5.5rem;
+      z-index: 200;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(45, 45, 45, 0.7);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .back-to-top.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .back-to-top:hover {
+      transform: scale(1.1);
+      background: rgba(45, 45, 45, 0.9);
+    }
+
+    .back-to-top svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: white;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
     /* ========== 1. Hero ========== */
@@ -998,6 +1051,11 @@
 </head>
 <body>
 
+  <!-- ===== Back to Top ===== -->
+  <button class="back-to-top" id="backToTop" aria-label="ページ上部に戻る">
+    <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
   <!-- ===== Video Play Button (FAB) ===== -->
   <button class="video-fab" id="videoFab" aria-label="動画を再生">
     <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
@@ -1083,7 +1141,7 @@
       </p>
 
       <div class="figure-full fade-in">
-        <img src="img/fig1-2-translation.png" alt="図1・図2：Google翻訳・DeepL・Claudeによる翻訳比較" class="figure-img" style="border:none; box-shadow: 0 4px 24px rgba(45,45,45,0.08);">
+        <img loading="lazy" src="img/fig1-2-translation.png" alt="図1・図2：Google翻訳・DeepL・Claudeによる翻訳比較" class="figure-img" style="border:none; box-shadow: 0 4px 24px rgba(45,45,45,0.08);">
         <p class="figure-caption">図1・図2：従来の翻訳サービス（Google翻訳・DeepL）とAI（Claude）による解釈の比較</p>
       </div>
 
@@ -1185,7 +1243,7 @@
 
       <!-- 4Eモデル図（Slide 12） -->
       <div class="figure-full fade-in" style="margin-top: 3rem;">
-        <img src="img/slide12-4emodel.png" alt="4Eモデル：2軸4象限" style="width:100%; max-width:600px; display:block; margin:0 auto; border-radius:12px; box-shadow: 0 4px 24px rgba(45,45,45,0.08);">
+        <img loading="lazy" src="img/slide12-4emodel.png" alt="4Eモデル：2軸4象限" style="width:100%; max-width:600px; display:block; margin:0 auto; border-radius:12px; box-shadow: 0 4px 24px rgba(45,45,45,0.08);">
         <p class="figure-caption">4Eモデル ── 受動的／能動的 × 吸収／没入 の4象限で経験価値を分析</p>
       </div>
     </div>
@@ -1257,7 +1315,7 @@
 
       <!-- 実験フロー図（Slide 15） -->
       <div class="figure-full fade-in" style="margin-bottom: 3rem;">
-        <img src="img/slide15-expflow.png" alt="実験の流れ：Step1 入力設定 → Step2 プロンプト条件 → Step3 AI出力" style="width:100%; border-radius:12px; box-shadow: 0 4px 24px rgba(45,45,45,0.08);">
+        <img loading="lazy" src="img/slide15-expflow.png" alt="実験の流れ：Step1 入力設定 → Step2 プロンプト条件 → Step3 AI出力" style="width:100%; border-radius:12px; box-shadow: 0 4px 24px rgba(45,45,45,0.08);">
         <p class="figure-caption">実験デザイン：入力設定 → プロンプト条件（①〜④ + Claude Projects）→ AI出力</p>
       </div>
 
@@ -1268,7 +1326,7 @@
             <h4>デフォルト（指示なし）</h4>
           </div>
           <p>AIの標準応答。一般的な情報を羅列するが、ゲスト個人への配慮はない。</p>
-          <img src="img/fig7-condition1.png" alt="図7：条件①デフォルトの回答" class="figure-img">
+          <img loading="lazy" src="img/fig7-condition1.png" alt="図7：条件①デフォルトの回答" class="figure-img">
           <div class="prompt-example">
             結果：百科事典的な説明。正確だが「体験」にはならない。
           </div>
@@ -1280,7 +1338,7 @@
             <h4>役割付与</h4>
           </div>
           <p>「京都の料亭の主人として答えてください」と役割を設定。語り口に温かみが生まれるが、相手を見ていない。</p>
-          <img src="img/fig8-condition2.png" alt="図8：条件②文化的背景付き回答" class="figure-img">
+          <img loading="lazy" src="img/fig8-condition2.png" alt="図8：条件②文化的背景付き回答" class="figure-img">
           <div class="prompt-example">
             結果：もてなしの言葉は増えたが、画一的な説明に留まる。
           </div>
@@ -1292,7 +1350,7 @@
             <h4>文化背景の注入</h4>
           </div>
           <p>ゲストの出身文化・食文化の情報を追加。「フランス料理のコースに似ていますが…」など比較を用いた説明が可能に。</p>
-          <img src="img/fig9-condition3.png" alt="図9：条件③出身国考慮の回答" class="figure-img">
+          <img loading="lazy" src="img/fig9-condition3.png" alt="図9：条件③出身国考慮の回答" class="figure-img">
           <div class="prompt-example">
             結果：異文化比較による説明が生まれ、理解の架け橋が形成され始める。
           </div>
@@ -1308,7 +1366,7 @@
             ゲストの反応に応じて説明を調整する<strong>動的対話</strong>を実現。
             情報を一方的に与えるのではなく、問いかけから始める。
           </p>
-          <img src="img/fig10-condition4.png" alt="図10：条件④双方向対話の回答" class="figure-img">
+          <img loading="lazy" src="img/fig10-condition4.png" alt="図10：条件④双方向対話の回答" class="figure-img">
           <div class="prompt-example">
             結果：ゲスト自身の文化体験と懐石を結びつける「第三の空間」が出現。
             AIが共創的媒介者として機能した。
@@ -1323,7 +1381,7 @@
 
       <!-- Claude Projects 対話例（Slide 14） -->
       <div class="figure-full fade-in" style="margin-top: 3rem;">
-        <img src="img/slide14-dialogue.png" alt="Claude Projectsによる対話例：タイ・アメリカ・フランスのゲスト" style="width:100%; border-radius:12px; box-shadow: 0 4px 24px rgba(45,45,45,0.08);">
+        <img loading="lazy" src="img/slide14-dialogue.png" alt="Claude Projectsによる対話例：タイ・アメリカ・フランスのゲスト" style="width:100%; border-radius:12px; box-shadow: 0 4px 24px rgba(45,45,45,0.08);">
         <p class="figure-caption">Claude Projectsによる対話例 ── 出身国（タイ・アメリカ・フランス）に応じた問いかけの違い</p>
       </div>
 
@@ -1409,7 +1467,7 @@
 
       <!-- 三角形図：3条件 × 第三の空間（Slide 8） -->
       <div class="figure-full fade-in" style="margin-top: 3.5rem;">
-        <img src="img/slide8-triangle.png" alt="3つの条件が生み出す第三の空間" style="width:100%; border-radius:12px; box-shadow: 0 4px 24px rgba(45,45,45,0.1); background:#FAF8F5;">
+        <img loading="lazy" src="img/slide8-triangle.png" alt="3つの条件が生み出す第三の空間" style="width:100%; border-radius:12px; box-shadow: 0 4px 24px rgba(45,45,45,0.1); background:#FAF8F5;">
         <p class="figure-caption">3つの条件が交わる中心に「第三の空間」が生まれる</p>
       </div>
     </div>
@@ -1427,13 +1485,13 @@
 
       <!-- Society 4.0 → 5.0 変化図（Slide 9） -->
       <div class="figure-full fade-in" style="margin-bottom: 3rem;">
-        <img src="img/slide9-society.png" alt="Society 4.0から5.0への変化" style="width:100%; border-radius:12px; box-shadow: 0 4px 24px rgba(45,45,45,0.08); background:#FAF8F5;">
+        <img loading="lazy" src="img/slide9-society.png" alt="Society 4.0から5.0への変化" style="width:100%; border-radius:12px; box-shadow: 0 4px 24px rgba(45,45,45,0.08); background:#FAF8F5;">
         <p class="figure-caption">Society 4.0（分断・対立）から Society 5.0（融和）へ ── 本研究の3条件が橋渡しとなる</p>
       </div>
 
       <!-- Before / After モデル図（Slide 11） -->
       <div class="figure-full fade-in" style="margin-bottom: 3rem;">
-        <img src="img/fig13-model.png" alt="Before(2026) → After(2035)：一方通行から第三の空間へ" style="width:100%; border-radius:12px; box-shadow: 0 4px 24px rgba(45,45,45,0.08);">
+        <img loading="lazy" src="img/fig13-model.png" alt="Before(2026) → After(2035)：一方通行から第三の空間へ" style="width:100%; border-radius:12px; box-shadow: 0 4px 24px rgba(45,45,45,0.08);">
         <p class="figure-caption">Before（2026年・一方通行の情報伝達）→ After（2035年・第三の空間の共創）</p>
       </div>
 
@@ -1524,6 +1582,41 @@
           }
         });
       });
+
+      // Back to top button
+      const backToTop = document.getElementById('backToTop');
+      backToTop.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      // Nav active highlight + back-to-top visibility
+      const sections = document.querySelectorAll('section[id]');
+      const navLinks = document.querySelectorAll('nav .nav-links a');
+
+      const updateNav = () => {
+        const scrollY = window.scrollY + 200;
+
+        // Back to top visibility
+        if (window.scrollY > 600) {
+          backToTop.classList.add('is-visible');
+        } else {
+          backToTop.classList.remove('is-visible');
+        }
+
+        // Active nav link
+        let currentId = '';
+        sections.forEach(section => {
+          if (section.offsetTop <= scrollY) {
+            currentId = section.id;
+          }
+        });
+        navLinks.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === '#' + currentId);
+        });
+      };
+
+      window.addEventListener('scroll', updateNav, { passive: true });
+      updateNav();
 
       // Video overlay
       const fab = document.getElementById('videoFab');
